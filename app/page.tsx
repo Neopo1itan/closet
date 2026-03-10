@@ -77,7 +77,7 @@ function MatchView({ selectedTop, selectedPants, getMatchImagePath, checkMatchIm
 
 export default function Home() {
   // 衣服列表 + 搭配选中
-  const [clothes, setClothes] = useState<ClothesData>({ top: [], pants: [] });
+  const [clothes, setClothes] = useState<ClothesData>({ top: [], pants: [], topCount: 0, pantsCount: 0 });
   const [selectedTop, setSelectedTop] = useState('');
   const [selectedPants, setSelectedPants] = useState('');
   const [matchRefreshKey, setMatchRefreshKey] = useState(0);
@@ -132,16 +132,31 @@ export default function Home() {
       const file = target.files?.[0];
       if (!file) return;
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
 
-      await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
+        // 获取当前数量并传递给后端
+        const currentCount = type === 'top' ? clothes.top.length : clothes.pants.length;
+        formData.append('currentCount', currentCount.toString());
 
-      loadClothes();//刷新列表
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          alert('上传成功！');
+          loadClothes(); // 刷新列表
+        } else {
+          alert('上传失败：' + result.error);
+        }
+      } catch (error) {
+        alert('上传失败，请重试');
+      }
     };
     input.click();
   };
@@ -194,7 +209,7 @@ export default function Home() {
 
   return (
     <div className="max-w-5xl mx-auto p-5">
-      <h1 className="text-center text-3xl font-bold">👔 智能衣柜（NAS版）</h1>
+      <h1 className="text-center text-3xl font-bold">👔 珏师の衣橱</h1>
 
       {/* 上传按钮 */}
       <div className="text-center my-8">
