@@ -1,0 +1,10 @@
+version: '3'
+services:
+  wardrobe:
+    build: .
+    ports:
+      - '8088:3000' # 访问端口：NASIP:8088
+    restart: always
+    # 核心：NAS 本地文件夹 挂载 到容器存储目录
+    volumes:
+      - ./public/assets:/app/public/assets
